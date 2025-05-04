@@ -49,7 +49,7 @@ kasm(){
   fi
 }
 
-pdfcreator(){
+pdfcompr(){
   input="$1"
   output="${input/\.pdf/}"'-compressed.pdf'
   gs -sDEVICE=pdfwrite -dPDFSETTINGS=/ebook -q -o "$output" "$input"
