@@ -1,0 +1,24 @@
+- name: 'updating all ubuntu systems!'
+  hosts: all,!localhost
+  become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python
+  tasks:
+    - when: ansible_distribution in ['Ubuntu', 'Debian']
+      ansible.builtin.apt: 
+        update_cache: yes
+        upgrade: yes
+        state: latest
+        autoremove: true
+
+- name: 'updating opnsense router'
+  hosts: localhost
+  connection: local
+  vars:
+    ansible_python_interpreter: /usr/bin/python
+  tasks:
+    - ansible.builtin.shell: ssh opnsense '/usr/local/opnsense/scripts/firmware/update.sh'
+      register: output
+      changed_when: "'Your packages are up to date' not in output.stdout"
+      failed_when: "'Error' in output.stdout"
+    - debug: var=output.stdout_lines
