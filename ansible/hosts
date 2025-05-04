@@ -1,0 +1,20 @@
+all:
+  vars:
+    ansible_python_interpreter: /usr/bin/python
+  children:
+    locals:
+      hosts:
+        localhost:
+          ansible_connection: local
+    rpi:
+      hosts:
+        morpheus:
+          ansible_architecture: aarch64
+        trinity:
+          ansible_architecture: aarch64
+    sr:
+      hosts:
+        neo:
+          ansible_user: kevin
+          ansible_host: 10.77.0.6
+          ansible_port: 22
