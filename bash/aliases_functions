@@ -1,1 +1,56 @@
 
+alias rsync="rsync -avh --info=progress2"
+
+plaay(){
+  ansible-playbook -i ~/.ansible/hosts ~/.ansible/yamls/"$1".yaml
+}
+
+lazy(){
+  hostz='all,!opnsense'
+  [[ @('update'|'reboot') =~ "$1" ]] && ansible-playbook -l "$hostz" -i ~/.ansible/hosts ~/.ansible/yamls/"$1".yaml || return
+}
+
+sprunge(){
+  curl -F 'sprunge=<-' http://sprunge.us
+}
+
+torify(){
+  sudo systemctl restart tor && \
+  sleep 0.5s && \
+  export http_proxy="socks5h://127.0.0.1:9050" 
+  export https_proxy="$http_proxy"
+  "$@"
+  unset http_proxy
+  unset https_proxy
+  sudo systemctl stop tor
+}
+
+nshl(){
+  for x in /usr/share/nano/*
+  do
+  echo "include $x" >> .nanorc
+  done
+}
+
+kasm(){
+  exited=$(docker ps -a | grep 'kasm'| grep 'Exited' | awk '{print $NF}')
+  up=$(docker ps -a | grep 'kasm'| grep 'Up' | awk '{print $NF}')
+  kasms=$(docker ps -a | grep 'kasm')
+  if [[ "$exited" ]]
+  then
+  [[ "$exited" && "$1" == "status" ]] && echo 'Kasm Down' && return
+  docker ps -a | grep 'kasm' | awk '{print $NF}' | xargs docker start &> /dev/null
+  echo "__Kasm started__"
+  elif [[ "$up" ]]
+  then
+  [[ "$up" && "$1" == "status" ]] && echo 'Kasm Up' && return
+  docker ps -a | grep 'kasm' | awk '{print $NF}' | xargs docker stop &> /dev/null
+  echo "__Kasm Stopped__"
+  fi
+}
+
+pdfcreator(){
+  input="$1"
+  output="${input/\.pdf/}"'-compressed.pdf'
+  gs -sDEVICE=pdfwrite -dPDFSETTINGS=/ebook -q -o "$output" "$input"
+}
