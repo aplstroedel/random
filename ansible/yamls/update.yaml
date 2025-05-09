@@ -1,15 +1,46 @@
-- name: 'updating all ubuntu systems!'
+- name: 'updating all ubuntu/debian systems!'
+  hosts: all,!localhost
+  become: yes
+  vars:
+    ansible_python_interpreter: /usr/bin/python
+  tasks:
+    - when: ansible_distribution in ['Ubuntu', 'Debian']
+      ansible.builtin.apt:
+        update_cache: yes
+        upgrade: 'yes'
+        state: latest
+        autoremove: yes
+
+- name: 'check if reboot is required'
+  hosts: all,!localhost
+  become: yes
+  vars:
+    ansible_python_interpreter: /usr/bin/python
+  tasks:
+    - when: ansible_distribution in ['Ubuntu', 'Debian']
+      ansible.builtin.shell:
+        cmd: test -e /var/run/reboot-required && echo true || echo false
+      changed_when: check.stdout == 'true'
+      register: check
+    - debug: var=check.stdout
+
+- name: 'reboot if check succeeded'
   hosts: all,!localhost
   become: true
   vars:
     ansible_python_interpreter: /usr/bin/python
   tasks:
-    - when: ansible_distribution in ['Ubuntu', 'Debian']
-      ansible.builtin.apt: 
-        update_cache: yes
-        upgrade: yes
-        state: latest
-        autoremove: true
+    - name: reboot all servers
+      when:
+        - ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian' 
+        - check.stdout == 'true'
+      reboot:
+        msg: "Reboot initiated by Ansible"
+        connect_timeout: 10
+        reboot_timeout: 650
+        pre_reboot_delay: 0
+        post_reboot_delay: 35
+        test_command: whoami
 
 - name: 'updating opnsense router'
   hosts: localhost
